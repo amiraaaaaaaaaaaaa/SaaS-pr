@@ -137,7 +137,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
+
 STATIC_URL = 'static/'
+
+STATIC_BASE_DIR = BASE_DIR / 'staticfiles'
+STATIC_VEND_DIR = STATIC_BASE_DIR / 'vendors'
+
+# Note: Django expects "STATICFILES_DIRS" (no underscore between static and files)
+STATICFILES_DIRS = [
+    STATIC_BASE_DIR
+]
+
+# This is where Django will copy all static files when you run collectstatic
+STATIC_ROOT = BASE_DIR / 'local-cdn'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
