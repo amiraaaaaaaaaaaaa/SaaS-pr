@@ -54,10 +54,12 @@ INSTALLED_APPS = [
     #my apps
 
     'visits',
+    'commando',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,7 +92,7 @@ WSGI_APPLICATION = 'amircfe.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 CONN_MAX_AGE = config("DATABASE_URL", cast = str, default = 300)
-DATABASE_URL = config("DATABASE_URL",cast = str)
+DATABASE_URL = config("DATABASE_URL",default = None)
 if DATABASE_URL is not None:
     import dj_database_url
     DATABASES = {
@@ -139,16 +141,18 @@ USE_TZ = True
 
 
 STATIC_URL = 'static/'
-
 STATIC_BASE_DIR = BASE_DIR / 'staticfiles'
+
+# Твоя старая переменная
 STATIC_VEND_DIR = STATIC_BASE_DIR / 'vendors'
 
-# Note: Django expects "STATICFILES_DIRS" (no underscore between static and files)
+# Новая строчка-дублер для скрипта vendor_pull:
+STATICFILES_VENDOR_DIR = STATIC_BASE_DIR / 'vendors'
+
 STATICFILES_DIRS = [
     STATIC_BASE_DIR
 ]
 
-# This is where Django will copy all static files when you run collectstatic
 STATIC_ROOT = BASE_DIR / 'local-cdn'
 
 # Default primary key field type
