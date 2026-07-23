@@ -55,6 +55,17 @@ INSTALLED_APPS = [
 
     'visits',
     'commando',
+    'profiles',
+    'subscriptions',
+
+    #third-party-apps
+    'slippers',
+    'allauth_ui',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.github',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +77,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    #django allauth
+
+    "allauth.account.middleware.AccountMiddleware",
+
 ]
 
 ROOT_URLCONF = 'amircfe.urls'
@@ -74,13 +90,17 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR/ "templates", BASE_DIR/"cfehome"],
-        'APP_DIRS': True,
+        'APP_DIRS': False,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+            ],
+            'loaders': [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
             ],
         },
     },
@@ -103,6 +123,20 @@ if DATABASE_URL is not None:
     }
 
 
+# EMAIL CONFIG
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST=config("EMAIL_HOST", cast=str,default='smtp.gmail.com')
+EMAIL_PORT=config("EMAIL_PORT",cast=str, default='587')
+EMAIL_USE_TLS=config("EMAIL_USE_TLS", cast=bool, default=True)
+EMAIL_USE_SSL=config("EMAIL_USE_SSL", cast=bool, default=False)
+EMAIL_HOST_USER=config("EMAIL_HOST_USER", cast=str, default=None)
+EMAIL_HOST_PASSWORD=config("EMAIL_HOST_PASSWORD", cast=str, default=None)
+
+
+ADMINS = [
+    ('Amir', 'a56131494@gmail.com')
+          ]
+MANAGERS = ADMINS
 
 
 # Password validation
@@ -123,6 +157,28 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+#django allauth config
+
+LOGIN_REDIRECT_URL = "/"
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[CFE]"
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+
+
+SOCIALACCOUNT_PROVIDERS = {
+        "github": {
+            "VERIFIED_EMAIL" : True
+        }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -167,3 +223,4 @@ STORAGES = {
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+

@@ -1,16 +1,18 @@
-{%extends "base.html"%}
-
-{% block head_title %} Homepage {% endblock head_title %}
-
-{%block content%}
-<p>
-    hello again!
-</p>
+{% extends 'base.html' %}
 
 
-{% include 'snippets/welcome-user-msg.html'%}
+{% block head_title %}{{ page_title }} - {{ block.super }}{% endblock head_title %}
 
-<p> Page visits: {{ page_visit_count }} </p>
-<p> Total: {{ total_visit_count }} </p>
 
-{%endblock content%}
+{% block content %}
+<h1 class="text-lg font-medium">{{ page_title }}</h1>
+<p>Hello again!</p>
+
+{% include 'snippets/welcome-user-msg.html' %}
+
+<p>Page visits: {{ page_visit_count }}</p>
+<p>percent: {{ percent }}</p>
+<p>Total visits: {{ total_visit_count }}</p>
+
+
+{% endblock content %}
