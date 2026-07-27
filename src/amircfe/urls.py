@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from auth import views as auth_view
+from django.views.generic import RedirectView
 from .views import (home_view,
                     about_view,
                     pw_protected_view,
@@ -27,8 +27,9 @@ from .views import (home_view,
 urlpatterns = [
     path('', home_view, name='home'),
     path('hello-world/', home_view),
-    path('login/', auth_view.login_view),
-    path("register/", auth_view.register_view),
+    # allauth owns authentication; these keep the old URLs working.
+    path('login/', RedirectView.as_view(pattern_name='account_login', permanent=False)),
+    path("register/", RedirectView.as_view(pattern_name='account_signup', permanent=False)),
     path("about/", about_view),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),

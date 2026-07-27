@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 from decouple import config
-import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,14 +23,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = str(os.environ.get("DJANGO_DEBUG")).lower() == "true"
-# print("DEBUG", DEBUG)
-
-DEBUG = config("DJANGO_DEBUG", cast = bool)
+DEBUG = config("DJANGO_DEBUG", cast = bool, default = False)
 
 
 ALLOWED_HOSTS = [
     ".railway.app" #https://saas.prod.railway.app
+]
+
+# Django 4+ requires the scheme-qualified origin for HTTPS POSTs, otherwise
+# every login/form submit on Railway fails CSRF verification.
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.railway.app"
 ]
 
 if DEBUG:
@@ -39,6 +41,20 @@ if DEBUG:
         "127.0.0.1",
         "localhost"
     ]
+    CSRF_TRUSTED_ORIGINS += [
+        "http://127.0.0.1",
+        "http://localhost"
+    ]
+else:
+    # Railway terminates TLS in front of gunicorn, so Django only learns the
+    # original scheme from this header.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30  # ramp up once you're sure HTTPS is stable
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 # Application definition
@@ -57,6 +73,7 @@ INSTALLED_APPS = [
     'commando',
     'profiles',
     'subscriptions',
+    'customers',
 
     #third-party-apps
     'slippers',
@@ -89,7 +106,7 @@ ROOT_URLCONF = 'amircfe.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR/ "templates", BASE_DIR/"cfehome"],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': False,
         'OPTIONS': {
             'context_processors': [
@@ -111,15 +128,23 @@ WSGI_APPLICATION = 'amircfe.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-CONN_MAX_AGE = config("DATABASE_URL", cast = str, default = 300)
-DATABASE_URL = config("DATABASE_URL",default = None)
+CONN_MAX_AGE = config("CONN_MAX_AGE", cast = int, default = 30)
+DATABASE_URL = config("DATABASE_URL", default = None)
 if DATABASE_URL is not None:
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(default=DATABASE_URL,
                                           conn_health_checks=True,
-                                          conn_max_age=30)
+                                          conn_max_age=CONN_MAX_AGE)
 
+    }
+else:
+    # Local fallback so a fresh clone without a .env still runs.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
 
 
@@ -159,6 +184,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 #django allauth config
 
+LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "[CFE]"
 ACCOUNT_LOGIN_METHODS = {'email', 'username'}
@@ -199,10 +225,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_BASE_DIR = BASE_DIR / 'staticfiles'
 
-# Твоя старая переменная
-STATIC_VEND_DIR = STATIC_BASE_DIR / 'vendors'
-
-# Новая строчка-дублер для скрипта vendor_pull:
+# Used by the `vendor_pull` management command.
 STATICFILES_VENDOR_DIR = STATIC_BASE_DIR / 'vendors'
 
 STATICFILES_DIRS = [

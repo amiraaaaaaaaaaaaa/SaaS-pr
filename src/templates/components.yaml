@@ -1,0 +1,3 @@
+# Slippers component registry. Required by django-allauth-ui's dependency on
+# slippers; empty because this project defines no custom slippers components.
+components: {}

@@ -5,5 +5,6 @@ from django.db import models
 class PageVisit(models.Model):
     # db - table
     #id -> hiddem -> primamry key -> autofield 1,2,3,4 and so on
-    path = models.TextField(blank=True, null=True) #col
+    # Indexed: every page render filters visits by path.
+    path = models.TextField(blank=True, null=True, db_index=True) #col
     timestamp = models.DateTimeField(auto_now_add=True) #col

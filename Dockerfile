@@ -53,7 +53,9 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # such as:
 
 RUN python manage.py vendor_pull
-RUN python manage.py collectstatic --noinput
+# allauth_ui ships input.css, a Tailwind *source* file whose `@import "tailwindcss"`
+# the manifest storage cannot resolve. Only output.css is actually referenced.
+RUN python manage.py collectstatic --noinput --ignore=input.css
 
 # set the Django default project name
 ARG PROJ_NAME="amircfe"
