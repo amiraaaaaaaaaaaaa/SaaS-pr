@@ -33,7 +33,15 @@ class Command(BaseCommand):
             if dry_run:
                 self.stdout.write(f"would create Customer for {user.username} <{user.email or 'no email'}>")
                 continue
-            customer, _ = Customer.objects.get_or_create(user=user)
+            # These users predate the confirmation flow; treat their existing
+            # address as confirmed so save() creates the Stripe customer.
+            customer, _ = Customer.objects.get_or_create(
+                user=user,
+                defaults={
+                    "init_email": user.email,
+                    "init_email_confirmed": bool(user.email),
+                },
+            )
             if customer.stripe_id:
                 self.stdout.write(f"{user.username} -> {customer.stripe_id}")
             else:
