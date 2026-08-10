@@ -30,7 +30,9 @@ class Customer(models.Model):
             try:
                 self.stripe_id = helpers.billing.create_customer(
                     email=self.init_email,
-                    metadata={"user_id": self.user_id},
+                    metadata={"user_id": self.user.id,
+                              "username": self.user.username,
+                              },
                     raw=False,
                 )
             except Exception:

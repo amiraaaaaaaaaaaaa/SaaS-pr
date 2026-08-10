@@ -59,12 +59,12 @@ class EmailConfirmedTests(TestCase):
         self.assertEqual(self.customer.stripe_id, "cus_test123")
 
     @patch("helpers.billing.create_customer", return_value="cus_test123")
-    def test_user_id_is_sent_to_stripe_as_metadata(self, mock_create):
+    def test_user_identity_is_sent_to_stripe_as_metadata(self, mock_create):
         self.confirm()
 
         mock_create.assert_called_once_with(
             email="carol@example.com",
-            metadata={"user_id": self.user.pk},
+            metadata={"user_id": self.user.pk, "username": "carol"},
             raw=False,
         )
 

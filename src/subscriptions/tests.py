@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.core.management import call_command
@@ -14,7 +16,18 @@ def sub_permissions(*codenames):
     )
 
 
-class SubscriptionModelTests(TestCase):
+class StripeMockedTestCase(TestCase):
+    """Subscription.save() creates a Stripe product, so every test that saves
+    one must be mocked -- otherwise the suite spams the real Stripe account."""
+
+    def setUp(self):
+        patcher = patch("helpers.billing.create_product", return_value="prod_test123")
+        self.mock_create_product = patcher.start()
+        self.addCleanup(patcher.stop)
+        super().setUp()
+
+
+class SubscriptionModelTests(StripeMockedTestCase):
     def test_custom_permissions_exist(self):
         """Meta.permissions was once indented out of the model, which made
         migration 0006 delete these. Guard against that happening again."""
@@ -32,7 +45,7 @@ class SubscriptionModelTests(TestCase):
         self.assertEqual(str(Subscription.objects.create(name="Pro Plan")), "Pro Plan")
 
 
-class SyncSubsCommandTests(TestCase):
+class SyncSubsCommandTests(StripeMockedTestCase):
     def test_pushes_subscription_permissions_onto_groups(self):
         group = Group.objects.create(name="pro-group")
         sub = Subscription.objects.create(name="Pro Plan")
@@ -59,8 +72,9 @@ class SyncSubsCommandTests(TestCase):
         )
 
 
-class UserSubsSignalTests(TestCase):
+class UserSubsSignalTests(StripeMockedTestCase):
     def setUp(self):
+        super().setUp()  # starts the Stripe mock before anything is created
         self.user = User.objects.create_user("alice", email="alice@example.com")
         self.pro_group = Group.objects.create(name="pro-group")
         self.sub = Subscription.objects.create(name="Pro Plan")
